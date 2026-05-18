@@ -9,7 +9,8 @@
 <meta name="description" content="Premium AI automation systems for ambitious businesses. Lead generation, WhatsApp automation, CRM workflows, and AI receptionists.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23060F1A'/%3E%3Ctext x='32' y='46' font-family='Georgia,serif' font-size='36' font-weight='900' text-anchor='middle' fill='%23C9A84C'%3EA%3C/text%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=DM+Sans:wght@300;400;500;600;700&family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
@@ -282,7 +283,7 @@ main,header,footer{position:relative;z-index:1}
 .demo-wf-node.ai{border-color:var(--teal-b);background:var(--teal-a)}
 .demo-wf-node.condition{border-color:rgba(139,92,246,.3);background:rgba(139,92,246,.06)}
 .demo-wf-node.action{border-color:rgba(16,185,129,.3);background:rgba(16,185,129,.06)}
-.demo-wf-node-icon{font-size:24px;margin-bottom:10px}
+.demo-wf-node-icon{font-size:24px;margin-bottom:10px;display:flex;align-items:center;justify-content:center;height:32px}
 .demo-wf-node-label{font-size:12.5px;font-weight:600;color:var(--paper)}
 .demo-wf-line{width:32px;height:2px;background:linear-gradient(90deg,rgba(201,168,76,.4),rgba(14,168,160,.4));flex-shrink:0}
 .demo-wf-footer{display:flex;gap:8px;flex-wrap:wrap}
@@ -301,7 +302,8 @@ footer{background:var(--ink2);border-top:1px solid rgba(201,168,76,.08);padding:
 .ind-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
 .ind-card{background:#fff;border:1px solid rgba(11,31,58,.08);border-radius:var(--r3);padding:28px 20px;text-align:center;transition:all .3s var(--ease);box-shadow:0 4px 20px rgba(11,31,58,.05)}
 .ind-card:hover{border-color:rgba(201,168,76,.35);transform:translateY(-5px);box-shadow:0 16px 48px rgba(201,168,76,.1)}
-.ind-icon{font-size:32px;margin-bottom:12px}
+.ind-icon{width:52px;height:52px;border-radius:var(--r2);background:var(--gold-a);border:1px solid var(--gold-b);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;color:var(--gold)}
+.ind-icon svg{width:22px;height:22px;stroke:var(--gold)}
 .ind-name{font-family:'Playfair Display',serif;font-size:17px;font-weight:700;color:var(--ink);margin-bottom:6px}
 .ind-desc{font-size:12px;color:var(--muted);line-height:1.6;font-weight:600}
 /* How It Works */
@@ -330,13 +332,623 @@ border-top:1px solid rgba(201,168,76,.08);padding:48px 0 28px}
 .fu{opacity:0;transform:translateY(24px);transition:opacity .7s var(--ease),transform .7s var(--ease)}
 .fu.in{opacity:1;transform:translateY(0)}.fu-d1{transition-delay:.1s}.fu-d2{transition-delay:.2s}
 .nav-desk{display:inline-flex}
-html[dir="rtl"] body{text-align:right}
-html[dir="rtl"] .nav-links,html[dir="rtl"] .nav-right,html[dir="rtl"] .hero-ctas,html[dir="rtl"] .contact-item{direction:rtl}
-html[dir="rtl"] .timeline-row.active{border-left:1px solid rgba(201,168,76,.28);border-right:3px solid var(--gold)}
-html[dir="rtl"] .timeline-row{grid-template-columns:12px 1fr auto}
+/* ============================================================
+   PRODUCTION-GRADE RTL ARCHITECTURE — AUTONIQUE
+   Root causes fixed:
+   1. letter-spacing on .label destroyed Arabic glyph joining
+   2. text-transform:uppercase on .label/.step-num etc. forced
+      Latin shaping onto Arabic glyphs
+   3. Playfair Display (.serif / h1-h3) applied to Arabic text
+   4. Positive letter-spacing on .foot-col h4, .why-num, .step-num
+   5. .label used inline-flex + letter-spacing:3px — each glyph
+      treated as isolated character, breaking cursive connection
+   6. phone numbers had no LTR isolation in RTL context
+   7. footer .foot-col h4 had letter-spacing:.14em (fatal for Arabic)
+   8. flexbox rows not flipped → dot placement, gap order wrong
+   9. border-left active indicator not mirrored to border-right
+   10. body text-align:right alone insufficient — needed per-component
+   ============================================================ */
+
+/* ── Global RTL reset ────────────────────────────────────── */
+html[dir="rtl"] {
+  /* Cascade Arabic font across everything */
+  --ar-font: 'Tajawal', 'Segoe UI', 'Tahoma', 'Arial Unicode MS', sans-serif;
+}
+
+html[dir="rtl"] body {
+  font-family: var(--ar-font);
+  text-align: right;
+  /* Proper Unicode bidi */
+  unicode-bidi: plaintext;
+}
+
+/* ── Kill the #1 Arabic typography killers globally in RTL ── */
+html[dir="rtl"] * {
+  /* letter-spacing breaks Arabic cursive joining — must be 0 */
+  letter-spacing: 0 !important;
+  /* text-transform does nothing useful in Arabic and can corrupt */
+  text-transform: none !important;
+}
+
+/* ── Headings: replace Playfair Display with Arabic font ─── */
+html[dir="rtl"] h1,
+html[dir="rtl"] h2,
+html[dir="rtl"] h3,
+html[dir="rtl"] h4,
+html[dir="rtl"] .serif,
+html[dir="rtl"] .sol-title,
+html[dir="rtl"] .why-title,
+html[dir="rtl"] .step-title,
+html[dir="rtl"] .ind-name,
+html[dir="rtl"] .contact-h3,
+html[dir="rtl"] .booking-title,
+html[dir="rtl"] .name-capture h3,
+html[dir="rtl"] .chat-head-name {
+  font-family: var(--ar-font) !important;
+  line-height: 1.45;
+  font-weight: 700;
+}
+
+/* ── Labels / pills / badges ─────────────────────────────── */
+/* Root cause: .label has letter-spacing:3px + text-transform:uppercase
+   Both are catastrophic for Arabic — they isolate each glyph, break
+   the cursive ligature chain, and produce disconnected letter fragments */
+html[dir="rtl"] .label {
+  font-family: var(--ar-font) !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+  font-size: 12px;
+  font-weight: 700;
+  /* Flex direction must match reading order */
+  flex-direction: row-reverse;
+  direction: rtl;
+}
+
+html[dir="rtl"] .label-dot {
+  /* dot appears on the right in RTL (visually leading) */
+  order: 1;
+  margin-inline-start: 0;
+  margin-inline-end: 8px;
+}
+
+/* Step tags, pipeline header, booking eyebrow, demo tabs */
+html[dir="rtl"] .step-tag,
+html[dir="rtl"] .pipeline-header,
+html[dir="rtl"] .booking-eyebrow,
+html[dir="rtl"] .demo-wf-title,
+html[dir="rtl"] .demo-tab,
+html[dir="rtl"] .intent-badge,
+html[dir="rtl"] .demo-wf-badge,
+html[dir="rtl"] .suggestion-chip,
+html[dir="rtl"] .lang-btn {
+  font-family: var(--ar-font) !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+  direction: rtl;
+}
+
+/* Why-section numbering (e.g. "01 — هندسة متميزة") */
+html[dir="rtl"] .why-num {
+  font-family: var(--ar-font) !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--gold);
+  direction: rtl;
+}
+
+/* Step numbers */
+html[dir="rtl"] .step-num {
+  font-family: var(--ar-font) !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+/* Footer column headings */
+html[dir="rtl"] .foot-col h4 {
+  font-family: var(--ar-font) !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--paper);
+  text-align: right;
+}
+
+/* Stat labels */
+html[dir="rtl"] .stat-l {
+  font-family: var(--ar-font) !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+/* ── Navigation RTL ──────────────────────────────────────── */
+html[dir="rtl"] .nav {
+  flex-direction: row-reverse;
+}
+html[dir="rtl"] .nav-links {
+  flex-direction: row-reverse;
+}
+html[dir="rtl"] .nav-right {
+  flex-direction: row-reverse;
+}
+html[dir="rtl"] .mobile-menu a {
+  font-family: var(--ar-font);
+  text-align: right;
+  letter-spacing: 0;
+}
+
+/* ── Hero RTL ────────────────────────────────────────────── */
+html[dir="rtl"] .hero-inner {
+  text-align: right;
+}
+html[dir="rtl"] .hero-ctas {
+  flex-direction: row-reverse;
+  justify-content: flex-start;
+}
+html[dir="rtl"] .hero-h1 {
+  line-height: 1.4;
+}
+html[dir="rtl"] .hero-stats {
+  direction: rtl;
+}
+html[dir="rtl"] .hero-stat {
+  padding: 0 0 0 clamp(16px,2.5vw,32px);
+  border-left: none;
+  border-right: 1px solid rgba(255,255,255,.07);
+  margin-left: clamp(16px,2.5vw,32px);
+  margin-right: 0;
+}
+html[dir="rtl"] .hero-stat:not(:last-child) {
+  border-right: 1px solid rgba(255,255,255,.07);
+  border-left: none;
+  margin-right: 0;
+  margin-left: clamp(16px,2.5vw,32px);
+}
+html[dir="rtl"] .hero-stat:last-child {
+  border-right: none;
+  border-left: none;
+  margin: 0;
+  padding: 0;
+}
+html[dir="rtl"] .stat-n {
+  font-family: var(--ar-font) !important;
+}
+
+/* ── Trust strip RTL ─────────────────────────────────────── */
+html[dir="rtl"] .trust-stat {
+  text-align: center;
+}
+
+/* ── Timeline RTL ────────────────────────────────────────── */
+html[dir="rtl"] .timeline-row {
+  grid-template-columns: auto 1fr 10px;
+  direction: rtl;
+}
+/* The active border indicator flips sides */
+html[dir="rtl"] .timeline-row.active {
+  border-left: 1px solid rgba(201,168,76,.28);
+  border-right: 3px solid var(--gold);
+}
+html[dir="rtl"] .timeline-row .time {
+  direction: ltr; /* keep timestamps LTR */
+  unicode-bidi: embed;
+  text-align: left;
+}
+
+/* ── Section headers RTL ─────────────────────────────────── */
+html[dir="rtl"] .sec-header {
+  text-align: center;
+}
+html[dir="rtl"] .prob-h2 {
+  text-align: right;
+}
+html[dir="rtl"] .prob-lead {
+  text-align: right;
+}
+
+/* ── Service/Solution cards RTL ──────────────────────────── */
+html[dir="rtl"] .sol-card {
+  text-align: right;
+}
+html[dir="rtl"] .sol-icon {
+  margin-left: auto;
+  margin-right: 0;
+}
+/* sol-num: the numbered badges in Section 5 */
+html[dir="rtl"] .sol-num {
+  font-family: var(--ar-font) !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+  text-align: right;
+  direction: rtl;
+}
+/* Section 5 solution grid RTL */
+html[dir="rtl"] #solution .sol-grid {
+  direction: rtl;
+}
+
+/* ── Industry cards RTL ──────────────────────────────────── */
+html[dir="rtl"] .ind-card {
+  text-align: center; /* center is direction-neutral, keep */
+}
+
+/* ── How It Works RTL ────────────────────────────────────── */
+html[dir="rtl"] .steps-grid {
+  direction: rtl;
+}
+html[dir="rtl"] .step-card {
+  text-align: right;
+}
+html[dir="rtl"] .step-icon {
+  margin-left: auto;
+  margin-right: 0;
+}
+html[dir="rtl"] .step-arrow {
+  /* flip arrow direction */
+  transform: scaleX(-1);
+}
+@media(max-width:900px) {
+  html[dir="rtl"] .step-arrow {
+    transform: rotate(90deg) scaleX(-1);
+  }
+}
+
+/* ── Why section RTL ─────────────────────────────────────── */
+html[dir="rtl"] .why-item {
+  text-align: right;
+}
+
+/* ── Demo section RTL ────────────────────────────────────── */
+html[dir="rtl"] .chat-demo {
+  direction: rtl;
+}
+html[dir="rtl"] .chat-header {
+  flex-direction: row-reverse;
+}
+html[dir="rtl"] .lang-toggle {
+  margin-left: 0;
+  margin-right: auto;
+}
+html[dir="rtl"] .chat-message.user {
+  align-items: flex-start; /* user messages align left in RTL */
+}
+html[dir="rtl"] .chat-message.bot {
+  align-items: flex-end;
+}
+html[dir="rtl"] .chat-message.user .bubble,
+html[dir="rtl"] .chat-message.user .message-bubble {
+  border-bottom-right-radius: 14px;
+  border-bottom-left-radius: 4px;
+}
+html[dir="rtl"] .chat-message.bot .bubble,
+html[dir="rtl"] .chat-message.bot .message-bubble {
+  border-bottom-left-radius: 14px;
+  border-bottom-right-radius: 4px;
+}
+html[dir="rtl"] .chat-input-row {
+  flex-direction: row-reverse;
+}
+html[dir="rtl"] .pipeline-header {
+  flex-direction: row-reverse;
+}
+html[dir="rtl"] .pipeline-entry-header {
+  flex-direction: row-reverse;
+}
+
+/* Demo phone — WhatsApp-style bubbles flip in RTL */
+html[dir="rtl"] .demo-phone-header {
+  flex-direction: row-reverse;
+}
+html[dir="rtl"] .demo-msg-in {
+  align-items: flex-end;
+}
+html[dir="rtl"] .demo-msg-out {
+  align-items: flex-start;
+}
+html[dir="rtl"] .demo-bubble-in {
+  border-radius: 12px 12px 2px 12px;
+}
+html[dir="rtl"] .demo-bubble-out {
+  border-radius: 12px 12px 12px 2px;
+}
+html[dir="rtl"] .demo-phone-msgs {
+  direction: rtl;
+}
+html[dir="rtl"] .demo-phone-input {
+  flex-direction: row-reverse;
+}
+html[dir="rtl"] .demo-side-info {
+  text-align: right;
+}
+html[dir="rtl"] .demo-info-label {
+  text-align: right;
+}
+html[dir="rtl"] .demo-flow {
+  text-align: right;
+}
+html[dir="rtl"] .demo-flow-steps {
+  direction: rtl;
+}
+html[dir="rtl"] .demo-flow-arrow {
+  transform: scaleX(-1);
+}
+html[dir="rtl"] .demo-flow-note {
+  text-align: right;
+  flex-direction: row-reverse;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+html[dir="rtl"] .demo-workflow {
+  text-align: right;
+}
+html[dir="rtl"] .demo-wf-nodes {
+  direction: rtl;
+}
+html[dir="rtl"] .demo-wf-line {
+  background: linear-gradient(270deg, rgba(201,168,76,.4), rgba(14,168,160,.4));
+}
+html[dir="rtl"] .demo-wf-footer {
+  direction: rtl;
+}
+html[dir="rtl"] .demo-dashboard {
+  direction: rtl;
+}
+html[dir="rtl"] .demo-db-header {
+  flex-direction: row-reverse;
+}
+html[dir="rtl"] .demo-db-row {
+  flex-direction: row-reverse;
+}
+html[dir="rtl"] .demo-db-lname {
+  text-align: right;
+}
+html[dir="rtl"] .demo-db-stats {
+  direction: rtl;
+}
+html[dir="rtl"] .demo-db-stat {
+  text-align: center;
+}
+html[dir="rtl"] .demo-db-lbl {
+  font-family: var(--ar-font) !important;
+}
+html[dir="rtl"] .demo-flow-txt {
+  text-align: right;
+}
+html[dir="rtl"] .demo-wf-node-label {
+  text-align: right;
+}
+@media(max-width:900px) {
+  html[dir="rtl"] .demo-flow-arrow {
+    transform: rotate(90deg) scaleX(-1);
+  }
+  html[dir="rtl"] .demo-wf-line {
+    background: linear-gradient(180deg, rgba(201,168,76,.4), rgba(14,168,160,.4));
+  }
+}
+
+html[dir="rtl"] .demo-tab svg {
+  margin-right: 0;
+  margin-left: 6px;
+}
+/* Demo tabs */
+html[dir="rtl"] .demo-tab-bar {
+  direction: rtl;
+}
+
+/* ── Contact section RTL ─────────────────────────────────── */
+html[dir="rtl"] .contact-item {
+  flex-direction: row-reverse;
+  text-align: right;
+}
+html[dir="rtl"] .contact-list {
+  text-align: right;
+}
+
+/* ── Booking/Form card RTL ───────────────────────────────── */
+html[dir="rtl"] .booking-card {
+  text-align: right;
+}
+html[dir="rtl"] .booking-eyebrow {
+  flex-direction: row-reverse;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+  font-family: var(--ar-font) !important;
+}
+html[dir="rtl"] .booking-eyebrow::before {
+  /* decorative line — keep but ensure it appears on the right */
+  order: 1;
+}
+html[dir="rtl"] .fl {
+  text-align: right;
+  font-family: var(--ar-font);
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+}
+html[dir="rtl"] .fi-light {
+  text-align: right;
+  font-family: var(--ar-font);
+  direction: rtl;
+}
+html[dir="rtl"] select.fi-light {
+  background-position: left 14px center;
+  padding-right: 14px;
+  padding-left: 40px;
+}
+html[dir="rtl"] .f-note-light {
+  text-align: center;
+  font-family: var(--ar-font);
+}
+html[dir="rtl"] .f-submit-light {
+  font-family: var(--ar-font);
+  letter-spacing: 0 !important;
+}
+/* Form success */
+html[dir="rtl"] .booking-success {
+  font-family: var(--ar-font);
+  text-align: center;
+}
+
+/* ── CTA Banner RTL ──────────────────────────────────────── */
+html[dir="rtl"] .cta-inner {
+  text-align: center; /* center is bilingual safe */
+}
+html[dir="rtl"] .cta-btns {
+  flex-direction: row-reverse;
+  justify-content: center;
+}
+
+/* ── Footer RTL ──────────────────────────────────────────── */
+html[dir="rtl"] footer {
+  direction: rtl;
+}
+html[dir="rtl"] .foot-grid {
+  direction: rtl;
+}
+html[dir="rtl"] .foot-col {
+  text-align: right;
+}
+html[dir="rtl"] .foot-col ul {
+  text-align: right;
+}
+html[dir="rtl"] .foot-tagline {
+  text-align: right;
+  max-width: 100%;
+}
+html[dir="rtl"] .foot-bottom {
+  flex-direction: row-reverse;
+}
+
+/* ── Phone numbers & emails: force LTR inside RTL ───────── */
+/* Root cause: in RTL context, "+965 99893300" renders as "99893300 965+"
+   Fix: create an LTR island with unicode-bidi:embed */
+html[dir="rtl"] .phone,
+html[dir="rtl"] a[href^="tel"],
+html[dir="rtl"] a[href^="mailto"] {
+  direction: ltr !important;
+  unicode-bidi: embed !important;
+  display: inline-block !important;
+  text-align: left !important;
+}
+
+/* ── Buttons: ensure RTL flex order is correct ───────────── */
+html[dir="rtl"] .btn {
+  flex-direction: row-reverse;
+  font-family: var(--ar-font);
+  letter-spacing: 0 !important;
+}
+
+/* ── WA FAB: flip to left side in RTL ────────────────────── */
+html[dir="rtl"] .wa-fab {
+  right: auto;
+  left: clamp(18px,4vw,28px);
+}
+
+/* ── Arabic contrast improvements ────────────────────────── */
+/* Some text was too dim on dark backgrounds */
+html[dir="rtl"] .sol-text {
+  color: rgba(255,255,255,.88);
+}
+html[dir="rtl"] .step-desc {
+  color: rgba(255,255,255,.82);
+}
+html[dir="rtl"] .sec-lead {
+  color: rgba(255,255,255,.92);
+}
+html[dir="rtl"] .prob-lead {
+  color: var(--ink);
+}
+html[dir="rtl"] .contact-lead {
+  color: rgba(255,255,255,.92);
+}
+html[dir="rtl"] .why-desc {
+  color: var(--muted);
+}
+
+/* ── Arabic line-height: Arabic needs more vertical room ─── */
+html[dir="rtl"] p,
+html[dir="rtl"] .sol-text,
+html[dir="rtl"] .step-desc,
+html[dir="rtl"] .why-desc,
+html[dir="rtl"] .prob-lead,
+html[dir="rtl"] .booking-sub,
+html[dir="rtl"] .foot-tagline,
+html[dir="rtl"] .contact-lead {
+  line-height: 1.95;
+}
+
+/* ── Section-level text alignment ────────────────────────── */
+html[dir="rtl"] .sec-header {
+  text-align: center;
+}
+html[dir="rtl"] .prob-layout {
+  direction: rtl;
+}
+
+/* ── Mobile RTL overrides ────────────────────────────────── */
+@media(max-width:600px) {
+  html[dir="rtl"] .hero-inner {
+    text-align: right;
+  }
+  html[dir="rtl"] .hero-ctas {
+    flex-direction: column;
+    align-items: flex-end;
+  }
+  html[dir="rtl"] .hero-ctas .btn {
+    width: 100%;
+    max-width: 360px;
+  }
+  html[dir="rtl"] .timeline-row {
+    text-align: right;
+    grid-template-columns: auto 1fr 10px;
+  }
+  html[dir="rtl"] .label {
+    align-self: flex-end;
+  }
+  html[dir="rtl"] .prob-layout {
+    text-align: right;
+  }
+  html[dir="rtl"] .prob-lead {
+    margin: 0;
+    text-align: right;
+  }
+  html[dir="rtl"] .foot-grid {
+    grid-template-columns: 1fr;
+  }
+  html[dir="rtl"] .foot-col {
+    text-align: right;
+  }
+  html[dir="rtl"] .cta-btns {
+    flex-direction: column;
+    align-items: center;
+  }
+}
+
+@media(max-width:900px) {
+  html[dir="rtl"] .prob-layout {
+    text-align: right;
+  }
+  html[dir="rtl"] .foot-grid {
+    direction: rtl;
+  }
+}
 @media(max-width:900px){.nav{gap:14px}.nav-links{display:none}.nav-toggle{display:flex}.nav-desk.btn-gold{display:none}.prob-layout,.contact-grid,.chat-demo,.sol-grid,.why-grid{grid-template-columns:1fr}.prob-layout{gap:28px;text-align:center}.prob-lead{margin:0 auto;max-width:620px}.timeline-card{max-width:620px;margin:0 auto;width:100%;border-radius:24px}.sol-grid{grid-template-columns:1fr 1fr}.foot-grid{grid-template-columns:1fr 1fr}.trust-inner{grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}}
 @media(max-width:600px){.sec{padding:72px 0}.logo-brand{height:18px}.nav-right{gap:8px}.lang-btn{font-size:11px;padding:6px 10px}#hero{min-height:auto;padding:116px 0 66px}.hero-inner{text-align:left}.label{letter-spacing:2px;font-size:9px;max-width:100%;white-space:normal}.hero-sub{font-size:15px;color:#3f4b5d}.urgency{font-size:13px;line-height:1.6}.hero-ctas{margin-bottom:0}.hero-ctas .btn{width:100%;max-width:360px}.trust-inner{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;padding:18px 0}.trust-stat{padding:16px 10px;border-radius:16px}.stat-n{font-size:clamp(30px,9vw,38px)}.stat-l{font-size:9.5px;letter-spacing:.04em;line-height:1.35}.timeline-card{padding:16px;border-radius:20px}.timeline-row{grid-template-columns:10px minmax(0,1fr);gap:10px;padding:12px;font-size:12.5px;text-align:left}.timeline-row .time{grid-column:2;font-size:10.5px}.sol-grid{grid-template-columns:1fr}.foot-grid{grid-template-columns:1fr}.cta-btns .btn{width:100%;max-width:360px}.form-frame iframe{height:520px}.chat-widget,.pipeline-panel{min-height:460px}html[dir="rtl"] .hero-inner,html[dir="rtl"] .timeline-row{text-align:right}}
 @media(max-width:480px){.lang-switch{display:flex}.nav-right .btn-gold{display:none}.nav-toggle{width:40px;height:40px}.wrap{padding:0 18px}.hero-h1{font-size:clamp(40px,13vw,56px)}}
+
+.phone,
+a[href^="tel"]{
+  direction:ltr;
+  unicode-bidi:embed;
+  display:inline-block;
+}
+
 </style>
 </head>
 <body>
@@ -378,11 +990,11 @@ html[dir="rtl"] .timeline-row{grid-template-columns:12px 1fr auto}
 <div class="hero-inner fu">
 <div class="label label-teal"><span class="label-dot"></span><span data-t="eyebrow">AI Automation · Engineered in Kuwait</span></div>
 <h1 class="hero-h1" data-t="h1">Helping Kuwait &amp; GCC Businesses <span class="accent">Grow</span> With AI Automation.</h1>
-<p class="hero-sub" data-t="sub">AI systems for WhatsApp, lead generation, appointment booking, follow-ups, and workflow automation.</p>
-<p class="urgency" data-t="urgency">⚡ Your business is losing leads every day — slow replies, missed bookings, manual follow-up. We fix that in 48 hours.</p>
+<p class="hero-sub" data-t="sub"  style="color: white;">AI systems for WhatsApp, lead generation, appointment booking, follow-ups, and workflow automation.</p>
+<p class="urgency" data-t="urgency" style="font-weight: bolder; color:aqua;"><svg viewBox="0 0 24 24" fill="currentColor" width="14" height="14" style="display:inline-block;vertical-align:middle;margin-right:5px"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>Your business is losing leads every day — slow replies, missed bookings, manual follow-up. We fix that in 48 hours.</p>
 <div class="hero-ctas">
 <a href="#contact" class="btn btn-gold btn-lg"><span data-t="heroCta1">Automate My Business</span></a>
-<a href="https://wa.me/96599893300" target="_blank" rel="noopener" class="btn btn-wa btn-lg"><svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893A11.821 11.821 0 0020.885 3.488"/></svg><span data-t="heroCta2">WhatsApp Us</span></a>
+<!-- <a href="https://wa.me/96599893300" target="_blank" rel="noopener" class="btn btn-wa btn-lg"><svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893A11.821 11.821 0 0020.885 3.488"/></svg><span data-t="heroCta2">WhatsApp Us</span></a> -->
 </div>
 </div>
 </div>
@@ -414,7 +1026,7 @@ html[dir="rtl"] .timeline-row{grid-template-columns:12px 1fr auto}
 <div class="sol-grid">
 <div class="sol-card fu"><div class="sol-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9.75 3.104v5.714a2.25 2.25 0 01-.659 1.591L5 14.5M9.75 3.104c-.251.023-.501.05-.75.082m.75-.082a24.301 24.301 0 014.5 0m0 0v5.714c0 .597.237 1.17.659 1.591L19.8 15.3M14.25 3.104c.251.023.501.05.75.082M19.8 15.3l-1.57.393A9.065 9.065 0 0112 15a9.065 9.065 0 00-6.23-.693L5 14.5m14.8.8l1.402 1.402c1 1 .03 2.798-1.414 2.798H4.213c-1.444 0-2.414-1.798-1.414-2.798L4.2 15.3"/></svg></div><h3 class="sol-title" data-t="s1">AI Receptionist</h3><p class="sol-text" data-t="s1d">24/7 intelligent reception that books appointments, answers inquiries, and handles patient communication — in Arabic & English — without missing a single message.</p></div>
 <div class="sol-card fu fu-d1"><div class="sol-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg></div><h3 class="sol-title" data-t="s2">WhatsApp Automation</h3><p class="sol-text" data-t="s2d">Instant, intelligent replies via WhatsApp. Personalized at scale — across thousands of conversations, in any language, round the clock.</p></div>
-<div class="sol-card fu fu-d2"><div class="sol-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2v4m0 12v4M4.93 4.93l2.83 2.83m8.48 8.48l2.83 2.83M2 12h4m12 0h4M4.93 19.07l2.83-2.83m8.48-8.48l2.83-2.83"/><circle cx="12" cy="12" r="4"/></svg></div><h3 class="sol-title" data-t="s3">Lead Generation</h3><p class="sol-text" data-t="s3d">Capture, qualify, and prioritize every lead with AI-driven workflows. Hot, warm, and cold routing built in — no lead falls through the cracks.</p></div>
+<div class="sol-card fu fu-d2"><div class="sol-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2v4m0 12v4M4.93 4.93l2.83 2.83m8.48 8.48l2.83 2.83M2 12h4m12 0h4M4.93 19.07l2.83-2.83m8.48-8.48l2.83-2.83"/><circle cx="12" cy="12" r="4"/></svg></div><h3 class="sol-title" data-t="s3">Customer Acquisition</h3><p class="sol-text" data-t="s3d">Capture, qualify, and prioritize every lead with AI-driven workflows. Hot, warm, and cold routing built in — no lead falls through the cracks.</p></div>
 <div class="sol-card fu"><div class="sol-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z"/></svg></div><h3 class="sol-title" data-t="s4">Follow-Up Systems</h3><p class="sol-text" data-t="s4d">Automated follow-up sequences that re-engage cold leads, remind about appointments, and nurture prospects until they convert — on autopilot.</p></div>
 <div class="sol-card fu fu-d1"><div class="sol-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14c0 1.66 4.03 3 9 3s9-1.34 9-3V5"/><path d="M3 12c0 1.66 4.03 3 9 3s9-1.34 9-3"/></svg></div><h3 class="sol-title" data-t="s5">CRM Automation</h3><p class="sol-text" data-t="s5d">Full sales pipeline visibility with auto-updating dashboards, classification, and SLA tracking. Your team always knows who to call next.</p></div>
 <div class="sol-card fu fu-d2"><div class="sol-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg></div><h3 class="sol-title" data-t="s6">Workflow Automation</h3><p class="sol-text" data-t="s6d">Bespoke automation engineered for your business. From content generation to multi-step decision trees, integrations, and custom AI-powered pipelines.</p></div>
@@ -429,19 +1041,19 @@ html[dir="rtl"] .timeline-row{grid-template-columns:12px 1fr auto}
   <p class="sec-lead" data-t="indSub">Whether you run a clinic, a real estate office, or a logistics fleet — if you're losing leads to slow replies, we have a system for you.</p>
 </div>
 <div class="ind-grid">
-  <div class="ind-card fu"><div class="ind-icon">🏥</div><div class="ind-name" data-t="ind1">Clinics</div><div class="ind-desc" data-t="ind1d">Patient booking, follow-ups & reminders</div></div>
-  <div class="ind-card fu fu-d1"><div class="ind-icon">🏢</div><div class="ind-name" data-t="ind2">Real Estate</div><div class="ind-desc" data-t="ind2d">Lead qualification & property inquiries</div></div>
-  <div class="ind-card fu fu-d2"><div class="ind-icon">🚗</div><div class="ind-name" data-t="ind3">Car Rental</div><div class="ind-desc" data-t="ind3d">Reservations, fleet management & upsells</div></div>
-  <div class="ind-card fu"><div class="ind-icon">🍽️</div><div class="ind-name" data-t="ind4">Restaurants</div><div class="ind-desc" data-t="ind4d">Orders, reservations & loyalty follow-ups</div></div>
-  <div class="ind-card fu fu-d1"><div class="ind-icon">💇</div><div class="ind-name" data-t="ind5">Salons</div><div class="ind-desc" data-t="ind5d">Appointment booking & reminders</div></div>
-  <div class="ind-card fu fu-d2"><div class="ind-icon">🚚</div><div class="ind-name" data-t="ind6">Logistics</div><div class="ind-desc" data-t="ind6d">Shipment tracking & customer updates</div></div>
-  <div class="ind-card fu"><div class="ind-icon">📡</div><div class="ind-name" data-t="ind7">Telecom</div><div class="ind-desc" data-t="ind7d">Support automation & plan upgrades</div></div>
-  <div class="ind-card fu fu-d1"><div class="ind-icon">🛒</div><div class="ind-name" data-t="ind8">E-commerce</div><div class="ind-desc" data-t="ind8d">Order support, returns & abandoned cart</div></div>
+  <div class="ind-card fu"><div class="ind-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></div><div class="ind-name" data-t="ind1">Clinics</div><div class="ind-desc" data-t="ind1d">Patient booking, follow-ups & reminders</div></div>
+  <div class="ind-card fu fu-d1"><div class="ind-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/><line x1="12" y1="12" x2="12" y2="16"/><line x1="10" y1="14" x2="14" y2="14"/></svg></div><div class="ind-name" data-t="ind2">Real Estate</div><div class="ind-desc" data-t="ind2d">Lead qualification & property inquiries</div></div>
+  <div class="ind-card fu fu-d2"><div class="ind-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="M16 8h4l3 5v3h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg></div><div class="ind-name" data-t="ind3">Car Rental</div><div class="ind-desc" data-t="ind3d">Reservations, fleet management & upsells</div></div>
+  <div class="ind-card fu"><div class="ind-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 11l19-9-9 19-2-8-8-2z"/></svg></div><div class="ind-name" data-t="ind4">Restaurants</div><div class="ind-desc" data-t="ind4d">Orders, reservations & loyalty follow-ups</div></div>
+  <div class="ind-card fu fu-d1"><div class="ind-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg></div><div class="ind-name" data-t="ind5">Salons</div><div class="ind-desc" data-t="ind5d">Appointment booking & reminders</div></div>
+  <div class="ind-card fu fu-d2"><div class="ind-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="3" width="15" height="13" rx="1"/><path d="M16 8h4l3 5v3h-7V8z"/><path d="M1 16h6m8 0h6"/><circle cx="5" cy="19" r="2"/><circle cx="19" cy="19" r="2"/><path d="M7 19h8"/></svg></div><div class="ind-name" data-t="ind6">Logistics</div><div class="ind-desc" data-t="ind6d">Shipment tracking & customer updates</div></div>
+  <div class="ind-card fu"><div class="ind-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="5" y="2" width="14" height="20" rx="2"/><path d="M12 18h.01"/><path d="M9 7h6M9 11h6"/></svg></div><div class="ind-name" data-t="ind7">Telecom</div><div class="ind-desc" data-t="ind7d">Support automation & plan upgrades</div></div>
+  <div class="ind-card fu fu-d1"><div class="ind-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg></div><div class="ind-name" data-t="ind8">E-commerce</div><div class="ind-desc" data-t="ind8d">Order support, returns & abandoned cart</div></div>
 </div>
 </div>
 </section>
 
-<!-- SECTION 5: HOW IT WORKS -->
+<!-- SECTION 5: HOW IT WORKS
 <section id="how" class="sec" style="background:var(--ink)">
 <div class="wrap">
 <div class="sec-header fu">
@@ -475,6 +1087,67 @@ html[dir="rtl"] .timeline-row{grid-template-columns:12px 1fr auto}
   </div>
 </div>
 </div>
+</section> -->
+
+<!-- SECTION 5: THE AUTONIQUE SYSTEM -->
+<section id="solution" class="sec">
+  <div class="wrap">
+    <div class="sec-header fu">
+      <div class="label label-gold" style="margin:0 auto 24px"><span class="label-dot"></span><span data-t="solEyebrow">The AUTONIQUE System</span></div>
+      <h2 class="sec-h2" data-t="solTitle">Your <span class="accent"><em>AI-Powered Growth Engine,</em></span><br>working while you sleep</h2>
+      <p class="sec-lead" data-t="solSub">One intelligent platform — trained on your clinic — handles everything from first message to confirmed booking. In Arabic. In English. Every hour of every day.</p>
+    </div>
+    <div class="sol-grid">
+      <div class="sol-card fu">
+        <div class="sol-num" data-t="solNum1">01</div>
+        <div class="sol-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+        </div>
+        <div class="sol-title" data-t="sol1">Instant WhatsApp Replies</div>
+        <div class="sol-text" data-t="sol1d">Your AI reception answers every message in under 60 seconds — with clinic-specific knowledge, correct pricing, and natural Arabic or English conversation. Day or night.</div>
+      </div>
+      <div class="sol-card fu fu-d1">
+        <div class="sol-num" data-t="solNum2">02</div>
+        <div class="sol-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2.5"/><path d="M16 2v4M8 2v4M3 10h18"/><path d="M9 16l2 2 4-4"/></svg>
+        </div>
+        <div class="sol-title" data-t="sol2">Automated Booking</div>
+        <div class="sol-text" data-t="sol2d">Patients choose their slot, confirm their appointment, and receive instant confirmation — all through WhatsApp. Your calendar fills automatically.</div>
+      </div>
+      <div class="sol-card fu fu-d2">
+        <div class="sol-num" data-t="solNum3">03</div>
+        <div class="sol-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+        </div>
+        <div class="sol-title" data-t="sol3">Smart Reminders</div>
+        <div class="sol-text" data-t="sol3d">Automated appointment reminders reduce no-shows by up to 60%. Customised messages sent 24 hours and 2 hours before each appointment.</div>
+      </div>
+      <div class="sol-card fu">
+        <div class="sol-num" data-t="solNum4">04</div>
+        <div class="sol-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+        </div>
+        <div class="sol-title" data-t="sol4">Patient Follow-ups</div>
+        <div class="sol-text" data-t="sol4d">Automated post-visit messages request reviews, share aftercare instructions, and bring patients back. Build loyalty without lifting a finger.</div>
+      </div>
+      <div class="sol-card fu fu-d1">
+        <div class="sol-num" data-t="solNum5">05</div>
+        <div class="sol-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        </div>
+        <div class="sol-title" data-t="sol5">Live Dashboard</div>
+        <div class="sol-text" data-t="sol5d">Monitor every conversation, booking, and patient interaction in real time. Full Arabic and English reporting so you always know what's happening.</div>
+      </div>
+      <div class="sol-card fu fu-d2">
+        <div class="sol-num" data-t="solNum6">06</div>
+        <div class="sol-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        </div>
+        <div class="sol-title" data-t="sol6">Enterprise-Grade Security</div>
+        <div class="sol-text" data-t="sol6d">Official WhatsApp Business API. Patient data protected with encryption. Fully compliant with Kuwait healthcare data standards.</div>
+      </div>
+    </div>
+  </div>
 </section>
 
 <section id="why" class="sec section-light"><div class="wrap">
@@ -507,10 +1180,10 @@ html[dir="rtl"] .timeline-row{grid-template-columns:12px 1fr auto}
 <!-- WhatsApp AI Chat Mockup -->
 <div class="demo-showcase fu">
   <div class="demo-tab-bar">
-    <button class="demo-tab active" onclick="showDemo('wa')">💬 WhatsApp AI Chat</button>
-    <button class="demo-tab" onclick="showDemo('dashboard')">📊 Lead Dashboard</button>
-    <button class="demo-tab" onclick="showDemo('booking')">📅 Booking Flow</button>
-    <button class="demo-tab" onclick="showDemo('workflow')">⚙️ Automation</button>
+    <button class="demo-tab active" onclick="showDemo('wa')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="14" height="14" style="display:inline-block;vertical-align:middle;margin-right:6px"><path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"/></svg><span data-t="demoTab1">WhatsApp AI Chat</span></button>
+    <button class="demo-tab" onclick="showDemo('dashboard')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="14" height="14" style="display:inline-block;vertical-align:middle;margin-right:6px"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 17h7M17 14v7"/></svg><span data-t="demoTab2">Lead Dashboard</span></button>
+    <button class="demo-tab" onclick="showDemo('booking')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="14" height="14" style="display:inline-block;vertical-align:middle;margin-right:6px"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/><path d="M9 16l2 2 4-4"/></svg><span data-t="demoTab3">Booking Flow</span></button>
+    <button class="demo-tab" onclick="showDemo('workflow')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="14" height="14" style="display:inline-block;vertical-align:middle;margin-right:6px"><circle cx="5" cy="12" r="2"/><circle cx="19" cy="5" r="2"/><circle cx="19" cy="19" r="2"/><path d="M7 12h6a2 2 0 002-2V7M15 14v3a2 2 0 01-2 2H7"/></svg><span data-t="demoTab4">Automation</span></button>
   </div>
 
   <!-- WhatsApp Panel -->
@@ -518,39 +1191,39 @@ html[dir="rtl"] .timeline-row{grid-template-columns:12px 1fr auto}
     <div class="demo-phone-wrap">
       <div class="demo-phone">
         <div class="demo-phone-header">
-          <div class="demo-phone-av">🏥</div>
+          <div class="demo-phone-av"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20" style="color:rgba(255,255,255,.9)"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></div>
           <div>
-            <div class="demo-phone-name">Autonique Clinic AI</div>
-            <div class="demo-phone-status">● Online · Replies instantly</div>
+            <div class="demo-phone-name" data-t="demoPhoneName">Autonique Clinic AI</div>
+            <div class="demo-phone-status" data-t="demoPhoneStatus">● Online · Replies instantly</div>
           </div>
         </div>
         <div class="demo-phone-msgs">
-          <div class="demo-msg-in"><div class="demo-bubble-in">Hello, I'd like to book an appointment for tomorrow at 5 PM 🙏</div><div class="demo-time">11:02 PM</div></div>
-          <div class="demo-msg-out"><div class="demo-bubble-out">Hello! Thank you for reaching out to us 😊<br><br>I can book you for <strong>tomorrow at 5:00 PM</strong>. May I have your name please?</div><div class="demo-time">11:02 PM · ✓✓</div></div>
-          <div class="demo-msg-in"><div class="demo-bubble-in">Ahmed Al-Rashid</div><div class="demo-time">11:03 PM</div></div>
-          <div class="demo-msg-out"><div class="demo-bubble-out">Perfect, Ahmed! ✅<br><br>Your appointment is confirmed:<br>📅 Tomorrow, 5:00 PM<br>📍 Our main clinic<br><br>You'll receive a reminder 1 hour before. See you then!</div><div class="demo-time">11:03 PM · ✓✓</div></div>
+          <div class="demo-msg-in"><div class="demo-bubble-in" data-t="demoMsg1In">Hello, I'd like to book an appointment for tomorrow at 5 PM</div><div class="demo-time">11:02 PM</div></div>
+          <div class="demo-msg-out"><div class="demo-bubble-out" data-t-html="demoMsg1Out">Hello! Thank you for reaching out to us.<br><br>I can book you for <strong>tomorrow at 5:00 PM</strong>. May I have your name please?</div><div class="demo-time">11:02 PM · <span data-t="demoRead">Read</span></div></div>
+          <div class="demo-msg-in"><div class="demo-bubble-in" data-t="demoMsg2In">Ahmed Al-Rashid</div><div class="demo-time">11:03 PM</div></div>
+          <div class="demo-msg-out"><div class="demo-bubble-out" data-t-html="demoMsg2Out">Perfect, Ahmed — your appointment is confirmed.<br><br><strong>Tomorrow · 5:00 PM</strong><br>Main clinic, Kuwait City<br><br>A reminder will be sent one hour before.</div><div class="demo-time">11:03 PM · <span data-t="demoDelivered">Delivered</span></div></div>
           <div class="demo-typing-indicator"><span></span><span></span><span></span></div>
         </div>
         <div class="demo-phone-input">
-          <span class="demo-input-placeholder">Type a message</span>
-          <div class="demo-send-btn">➤</div>
+          <span class="demo-input-placeholder" data-t="demoTypePlaceholder">Type a message</span>
+          <div class="demo-send-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></div>
         </div>
       </div>
       <div class="demo-side-info">
         <div class="demo-info-card">
-          <div class="demo-info-label">Response Time</div>
-          <div class="demo-info-value" style="color:var(--gold)">12 sec</div>
+          <div class="demo-info-label" data-t="demoStat1Lbl">Response Time</div>
+          <div class="demo-info-value" style="color:var(--gold)" data-t="demoStat1Val">12 sec</div>
         </div>
         <div class="demo-info-card">
-          <div class="demo-info-label">Intent Detected</div>
-          <div class="demo-info-value" style="color:#10b981">BOOKING</div>
+          <div class="demo-info-label" data-t="demoStat2Lbl">Intent Detected</div>
+          <div class="demo-info-value" style="color:#10b981" data-t="demoStat2Val">BOOKING</div>
         </div>
         <div class="demo-info-card">
-          <div class="demo-info-label">CRM Updated</div>
-          <div class="demo-info-value" style="color:var(--teal)">Automatic</div>
+          <div class="demo-info-label" data-t="demoStat3Lbl">CRM Updated</div>
+          <div class="demo-info-value" style="color:var(--teal)" data-t="demoStat3Val">Automatic</div>
         </div>
         <div class="demo-info-card">
-          <div class="demo-info-label">Language</div>
+          <div class="demo-info-label" data-t="demoStat4Lbl">Language</div>
           <div class="demo-info-value" style="color:var(--gold)">EN / AR</div>
         </div>
       </div>
@@ -561,21 +1234,21 @@ html[dir="rtl"] .timeline-row{grid-template-columns:12px 1fr auto}
   <div class="demo-panel" id="demo-dashboard">
     <div class="demo-dashboard">
       <div class="demo-db-header">
-        <span class="demo-db-title">Lead Pipeline Dashboard</span>
-        <span class="demo-db-live">● Live</span>
+        <span class="demo-db-title" data-t="dbTitle">Lead Pipeline Dashboard</span>
+        <span class="demo-db-live" data-t="dbLive">● Live</span>
       </div>
       <div class="demo-db-stats">
-        <div class="demo-db-stat"><div class="demo-db-num" style="color:var(--gold)">847</div><div class="demo-db-lbl">Total Leads</div></div>
-        <div class="demo-db-stat"><div class="demo-db-num" style="color:#10b981">312</div><div class="demo-db-lbl">Converted</div></div>
-        <div class="demo-db-stat"><div class="demo-db-num" style="color:var(--teal)">193</div><div class="demo-db-lbl">Active</div></div>
-        <div class="demo-db-stat"><div class="demo-db-num" style="color:#ef4444">42</div><div class="demo-db-lbl">Missed → Recovered</div></div>
+        <div class="demo-db-stat"><div class="demo-db-num" style="color:var(--gold)">847</div><div class="demo-db-lbl" data-t="dbStat1">Total Leads</div></div>
+        <div class="demo-db-stat"><div class="demo-db-num" style="color:#10b981">312</div><div class="demo-db-lbl" data-t="dbStat2">Converted</div></div>
+        <div class="demo-db-stat"><div class="demo-db-num" style="color:var(--teal)">193</div><div class="demo-db-lbl" data-t="dbStat3">Active</div></div>
+        <div class="demo-db-stat"><div class="demo-db-num" style="color:#ef4444">42</div><div class="demo-db-lbl" data-t="dbStat4">Missed → Recovered</div></div>
       </div>
       <div class="demo-db-rows">
-        <div class="demo-db-row"><div class="demo-db-dot" style="background:#10b981"></div><div class="demo-db-lname">Fatima Al-Sabah</div><div class="demo-intent-badge" style="background:rgba(16,185,129,.15);color:#10b981">BOOKED</div><div class="demo-db-time">2 min ago</div></div>
-        <div class="demo-db-row"><div class="demo-db-dot" style="background:var(--gold)"></div><div class="demo-db-lname">Mohammed Al-Osaimi</div><div class="demo-intent-badge" style="background:var(--gold-a);color:var(--gold)">HOT LEAD</div><div class="demo-db-time">5 min ago</div></div>
-        <div class="demo-db-row"><div class="demo-db-dot" style="background:var(--teal)"></div><div class="demo-db-lname">Sara Al-Mutairi</div><div class="demo-intent-badge" style="background:var(--teal-a);color:var(--teal)">INQUIRY</div><div class="demo-db-time">11 min ago</div></div>
-        <div class="demo-db-row"><div class="demo-db-dot" style="background:#10b981"></div><div class="demo-db-lname">Khalid Al-Rashidi</div><div class="demo-intent-badge" style="background:rgba(16,185,129,.15);color:#10b981">BOOKED</div><div class="demo-db-time">18 min ago</div></div>
-        <div class="demo-db-row"><div class="demo-db-dot" style="background:#ef4444"></div><div class="demo-db-lname">Noor Al-Kandari</div><div class="demo-intent-badge" style="background:rgba(239,68,68,.15);color:#ef4444">RESCHEDULE</div><div class="demo-db-time">32 min ago</div></div>
+        <div class="demo-db-row"><div class="demo-db-dot" style="background:#10b981"></div><div class="demo-db-lname">Fatima Al-Sabah</div><div class="demo-intent-badge" style="background:rgba(16,185,129,.15);color:#10b981" data-t="badgeBooked">BOOKED</div><div class="demo-db-time" data-t="dbTime1">2 min ago</div></div>
+        <div class="demo-db-row"><div class="demo-db-dot" style="background:var(--gold)"></div><div class="demo-db-lname">Mohammed Al-Osaimi</div><div class="demo-intent-badge" style="background:var(--gold-a);color:var(--gold)" data-t="badgeHot">HOT LEAD</div><div class="demo-db-time" data-t="dbTime2">5 min ago</div></div>
+        <div class="demo-db-row"><div class="demo-db-dot" style="background:var(--teal)"></div><div class="demo-db-lname">Sara Al-Mutairi</div><div class="demo-intent-badge" style="background:var(--teal-a);color:var(--teal)" data-t="badgeInquiry">INQUIRY</div><div class="demo-db-time" data-t="dbTime3">11 min ago</div></div>
+        <div class="demo-db-row"><div class="demo-db-dot" style="background:#10b981"></div><div class="demo-db-lname">Khalid Al-Rashidi</div><div class="demo-intent-badge" style="background:rgba(16,185,129,.15);color:#10b981" data-t="badgeBooked2">BOOKED</div><div class="demo-db-time" data-t="dbTime4">18 min ago</div></div>
+        <div class="demo-db-row"><div class="demo-db-dot" style="background:#ef4444"></div><div class="demo-db-lname">Noor Al-Kandari</div><div class="demo-intent-badge" style="background:rgba(239,68,68,.15);color:#ef4444" data-t="badgeReschedule">RESCHEDULE</div><div class="demo-db-time" data-t="dbTime5">32 min ago</div></div>
       </div>
     </div>
   </div>
@@ -583,34 +1256,43 @@ html[dir="rtl"] .timeline-row{grid-template-columns:12px 1fr auto}
   <!-- Booking Flow Panel -->
   <div class="demo-panel" id="demo-booking">
     <div class="demo-flow">
-      <div class="demo-flow-title">AI Booking Flow — Runs 24/7</div>
+      <div class="demo-flow-title" data-t="flowTitle">AI Booking Flow — Runs 24/7</div>
       <div class="demo-flow-steps">
-        <div class="demo-flow-step active"><div class="demo-flow-num">1</div><div class="demo-flow-txt"><strong>Customer messages</strong><br>via WhatsApp or website</div></div>
+        <div class="demo-flow-step active"><div class="demo-flow-num">1</div><div class="demo-flow-txt"><strong data-t="flowStep1Title">Customer messages</strong><br><span data-t="flowStep1Sub">via WhatsApp or website</span></div></div>
         <div class="demo-flow-arrow">→</div>
-        <div class="demo-flow-step active"><div class="demo-flow-num">2</div><div class="demo-flow-txt"><strong>AI detects intent</strong><br>Booking / Inquiry / Cancel</div></div>
+        <div class="demo-flow-step active"><div class="demo-flow-num">2</div><div class="demo-flow-txt"><strong data-t="flowStep2Title">AI detects intent</strong><br><span data-t="flowStep2Sub">Booking / Inquiry / Cancel</span></div></div>
         <div class="demo-flow-arrow">→</div>
-        <div class="demo-flow-step active"><div class="demo-flow-num">3</div><div class="demo-flow-txt"><strong>Checks calendar</strong><br>Real-time availability</div></div>
+        <div class="demo-flow-step active"><div class="demo-flow-num">3</div><div class="demo-flow-txt"><strong data-t="flowStep3Title">Checks calendar</strong><br><span data-t="flowStep3Sub">Real-time availability</span></div></div>
         <div class="demo-flow-arrow">→</div>
-        <div class="demo-flow-step active"><div class="demo-flow-num">4</div><div class="demo-flow-txt"><strong>Confirms booking</strong><br>Instant reply in any language</div></div>
+        <div class="demo-flow-step active"><div class="demo-flow-num">4</div><div class="demo-flow-txt"><strong data-t="flowStep4Title">Confirms booking</strong><br><span data-t="flowStep4Sub">Instant reply in any language</span></div></div>
         <div class="demo-flow-arrow">→</div>
-        <div class="demo-flow-step active"><div class="demo-flow-num">5</div><div class="demo-flow-txt"><strong>CRM updated</strong><br>Team notified automatically</div></div>
+        <div class="demo-flow-step active"><div class="demo-flow-num">5</div><div class="demo-flow-txt"><strong data-t="flowStep5Title">CRM updated</strong><br><span data-t="flowStep5Sub">Team notified automatically</span></div></div>
       </div>
-      <div class="demo-flow-note">⚡ This entire flow takes under 15 seconds. Zero human intervention required.</div>
+      <div class="demo-flow-note"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14" style="display:inline-block;vertical-align:middle;margin-right:6px;color:var(--wa)"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg><span data-t="flowNote">This entire flow takes under 15 seconds. Zero human intervention required.</span></div>
+        <div class="demo-flow-step active"><div class="demo-flow-num">2</div><div class="demo-flow-txt"><strong data-t="flowStep2Title">AI detects intent</strong><br><span data-t="flowStep2Sub">Booking / Inquiry / Cancel</span></div></div>
+        <div class="demo-flow-arrow">→</div>
+        <div class="demo-flow-step active"><div class="demo-flow-num">3</div><div class="demo-flow-txt"><strong data-t="flowStep3Title">Checks calendar</strong><br><span data-t="flowStep3Sub">Real-time availability</span></div></div>
+        <div class="demo-flow-arrow">→</div>
+        <div class="demo-flow-step active"><div class="demo-flow-num">4</div><div class="demo-flow-txt"><strong data-t="flowStep4Title">Confirms booking</strong><br><span data-t="flowStep4Sub">Instant reply in any language</span></div></div>
+        <div class="demo-flow-arrow">→</div>
+        <div class="demo-flow-step active"><div class="demo-flow-num">5</div><div class="demo-flow-txt"><strong data-t="flowStep5Title">CRM updated</strong><br><span data-t="flowStep5Sub">Team notified automatically</span></div></div>
+      </div>
+      <div class="demo-flow-note"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14" style="display:inline-block;vertical-align:middle;margin-right:6px;color:var(--wa)"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg><span data-t="flowNote">This entire flow takes under 15 seconds. Zero human intervention required.</span></div>
     </div>
   </div>
 
   <!-- Workflow Panel -->
   <div class="demo-panel" id="demo-workflow">
     <div class="demo-workflow">
-      <div class="demo-wf-title">Automation Workflow Builder</div>
+      <div class="demo-wf-title" data-t="wfTitle">Automation Workflow Builder</div>
       <div class="demo-wf-nodes">
-        <div class="demo-wf-node trigger"><div class="demo-wf-node-icon">📩</div><div class="demo-wf-node-label">Trigger<br><small>New WhatsApp message</small></div></div>
+        <div class="demo-wf-node trigger"><div class="demo-wf-node-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="24" height="24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg></div><div class="demo-wf-node-label"><span data-t="wfNode1Title">Trigger</span><br><small data-t="wfNode1Sub">New WhatsApp message</small></div></div>
         <div class="demo-wf-line"></div>
-        <div class="demo-wf-node ai"><div class="demo-wf-node-icon">🤖</div><div class="demo-wf-node-label">AI Analysis<br><small>Detect intent & extract data</small></div></div>
+        <div class="demo-wf-node ai"><div class="demo-wf-node-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="24" height="24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M2 12h3M19 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12"/></svg></div><div class="demo-wf-node-label"><span data-t="wfNode2Title">AI Analysis</span><br><small data-t="wfNode2Sub">Detect intent & extract data</small></div></div>
         <div class="demo-wf-line"></div>
-        <div class="demo-wf-node condition"><div class="demo-wf-node-icon">⚡</div><div class="demo-wf-node-label">Route<br><small>Booking / Follow-up / Escalate</small></div></div>
+        <div class="demo-wf-node condition"><div class="demo-wf-node-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="24" height="24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></div><div class="demo-wf-node-label"><span data-t="wfNode3Title">Route</span><br><small data-t="wfNode3Sub">Booking / Follow-up / Escalate</small></div></div>
         <div class="demo-wf-line"></div>
-        <div class="demo-wf-node action"><div class="demo-wf-node-icon">✅</div><div class="demo-wf-node-label">Action<br><small>Reply + Update CRM + Alert team</small></div></div>
+        <div class="demo-wf-node action"><div class="demo-wf-node-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="24" height="24"><polyline points="20 6 9 17 4 12"/></svg></div><div class="demo-wf-node-label"><span data-t="wfNode4Title">Action</span><br><small data-t="wfNode4Sub">Reply + Update CRM + Alert team</small></div></div>
       </div>
       <div class="demo-wf-footer">
         <span class="demo-wf-badge">n8n</span>
@@ -625,7 +1307,7 @@ html[dir="rtl"] .timeline-row{grid-template-columns:12px 1fr auto}
 </div>
 
 <div style="text-align:center;margin-top:40px">
-<a href="https://wa.me/96599893300" target="_blank" rel="noopener" class="btn btn-wa btn-lg"><svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18" style="flex-shrink:0"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893A11.821 11.821 0 0020.885 3.488"/></svg><span data-t="demoCta">Book a Live Demo — See It Running</span></a>
+<!-- <a href="https://wa.me/96599893300" target="_blank" rel="noopener" class="btn btn-wa btn-lg"><svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18" style="flex-shrink:0"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893A11.821 11.821 0 0020.885 3.488"/></svg><span data-t="demoCta">Book a Live Demo — See It Running</span></a> -->
 </div>
 </div>
 </section>
@@ -635,7 +1317,7 @@ html[dir="rtl"] .timeline-row{grid-template-columns:12px 1fr auto}
 <p class="cta-p" data-t="ctaBody">Tell us about your operation. We'll respond within hours with a tailored automation roadmap.</p>
 <div class="cta-btns">
 <a href="#contact" class="btn btn-gold btn-lg"><span data-t="ctaBtn1">Book Free Demo</span></a>
-<a href="https://wa.me/96599893300" target="_blank" rel="noopener" class="btn btn-wa btn-lg"><span data-t="ctaBtn2">Talk to us</span></a>
+<!-- <a href="https://wa.me/96599893300" target="_blank" rel="noopener" class="btn btn-wa btn-lg"><span data-t="ctaBtn2">Talk to us</span></a> -->
 </div></div></section>
 
 <section id="contact" class="sec section-dark"><div class="wrap"><div class="contact-grid">
@@ -643,8 +1325,8 @@ html[dir="rtl"] .timeline-row{grid-template-columns:12px 1fr auto}
 <p class="contact-lead" data-t="formSub">Share a few details about your business and we'll respond with a custom automation plan within hours.</p>
 <ul class="contact-list">
 <li class="contact-item"><span class="contact-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></span><span data-t="contactLocation">Kuwait City, Kuwait</span></li>
-<li class="contact-item"><span class="contact-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg></span><a href="tel:+96599893300">+965 99893300</a></li>
-<li class="contact-item"><span class="contact-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></span><a href="mailto:hello@autonique.ai">hello@autonique.ai</a></li>
+<li class="contact-item"><span class="contact-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg></span><a href="tel:+96599893300" class="phone" dir="ltr" style="direction:ltr;unicode-bidi:embed;display:inline-block;">+965 99893300</a></li>
+<li class="contact-item"><span class="contact-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></span><a href="mailto:hello@autonique.ai" dir="ltr" style="direction:ltr;unicode-bidi:embed;display:inline-block;">hello@autonique.ai</a></li>
 </ul></div>
 <div class="booking-card fu fu-d1">
 <div id="contact-form">
@@ -667,10 +1349,11 @@ html[dir="rtl"] .timeline-row{grid-template-columns:12px 1fr auto}
 <option value="Morning" data-t="optMorning">Morning (9am – 12pm)</option><option value="Afternoon" data-t="optAfternoon">Afternoon (12pm – 4pm)</option><option value="Evening" data-t="optEvening">Evening (4pm – 8pm)</option>
 </select></div>
 <button type="button" class="f-submit-light" onclick="submitContactForm()" data-t="formSubmit">Book My Free Demo →</button>
-<p class="f-note-light" data-t="formNote">🔒 Your information is private. We'll reach you on WhatsApp within 2 hours.</p>
+<p class="f-note-light" data-t="formNote"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12" style="display:inline-block;vertical-align:middle;margin-right:4px;opacity:.6"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>Your information is private. We'll reach you on WhatsApp within 2 hours.</p>
 </div>
 <div class="booking-success" id="contact-success">
-<div class="success-icon">✅</div>
+<div class="success-icon"><svg viewBox="0 0 52 52" fill="none" xmlns="http://www.w3.org/2000/svg" width="52" height="52"><circle cx="26" cy="26" r="25" stroke="var(--gold)" stroke-width="1.5" fill="none" opacity="0.3"/><circle cx="26" cy="26" r="25" stroke="var(--gold)" stroke-width="1.5" fill="none" stroke-dasharray="157" stroke-dashoffset="157" style="animation:drawCircle .6s ease forwards"/><polyline points="14,27 22,35 38,19" stroke="var(--gold)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none" stroke-dasharray="35" stroke-dashoffset="35" style="animation:drawCheck .4s ease .5s forwards"/></svg></div>
+<style>@keyframes drawCircle{to{stroke-dashoffset:0}}@keyframes drawCheck{to{stroke-dashoffset:0}}</style>
 <h4 class="success-title" data-t="formSuccessTitle">Request Received</h4>
 <p class="success-text" data-t="formSuccessText">An AUTONIQUE team member will reach out on WhatsApp within 2 hours to confirm your slot.</p>
 </div>
@@ -682,9 +1365,9 @@ html[dir="rtl"] .timeline-row{grid-template-columns:12px 1fr auto}
 <div class="foot-grid">
 <div><a href="#" aria-label="AUTONIQUE"><svg class="logo logo-brand" xmlns="http://www.w3.org/2000/svg" viewBox="100 300 830 135"><polygon points="160.22 324.33 115.97 422.36 134.73 422.36 166.94 351.08 199.15 422.36 217.91 422.36 173.66 324.33 160.22 324.33"/><path d="M283.4,375.72c0,18.91-9.38,29.41-26,29.41s-26.05-10.5-26.05-29.41V324.33H213.1v51.39c0,28.71,17.08,46.64,44.25,46.64s44.25-17.93,44.25-46.64V324.33H283.4Z"/><polygon points="310.37 342.54 341.3 342.54 341.3 422.36 359.51 422.36 359.51 342.54 390.44 342.54 390.44 324.33 310.37 324.33 310.37 342.54"/><path d="M445.14,322.93a50.42,50.42,0,1,0,50.41,50.42A50.66,50.66,0,0,0,445.14,322.93Zm0,82.2c-16.67,0-30.39-14.28-30.39-31.78,0-17.65,13.72-31.8,30.39-31.8s30.39,14.15,30.39,31.8C475.53,390.85,461.94,405.13,445.14,405.13Z"/><polygon points="566.35 388.05 517.62 324.33 504.03 324.33 504.03 422.36 522.24 422.36 522.24 359.06 570.97 422.36 584.55 422.36 584.55 324.33 566.35 324.33 566.35 388.05"/><rect x="596.79" y="324.33" width="18.21" height="98.03"/><path d="M805,375.72c0,18.91-9.38,29.41-26,29.41s-26.05-10.5-26.05-29.41V324.33h-18.2v51.39c0,28.71,17.08,46.64,44.25,46.64s44.25-17.93,44.25-46.64V324.33H805Z"/><polygon points="903.89 342.54 903.89 324.33 832.89 324.33 832.89 422.36 903.89 422.36 903.89 404.15 851.1 404.15 851.1 382.45 895.91 382.45 895.91 364.24 851.1 364.24 851.1 342.54 903.89 342.54"/><path d="M707.1,413.31l9.43,13.19H694.41l-15.27-21.31a31.7,31.7,0,0,0,27.19-21.07,26.24,26.24,0,0,0,1-3.4c.14-.59.27-1.18.36-1.77a13.47,13.47,0,0,0,.32-2.4,20.42,20.42,0,0,0,.18-2.95v-.18a23.68,23.68,0,0,0-.18-3.17,26.22,26.22,0,0,0-.45-3.13v0a24.77,24.77,0,0,0-.77-3,.16.16,0,0,1,0-.14,16.41,16.41,0,0,0-1-2.81,25.16,25.16,0,0,0-3-5.44,15,15,0,0,0-1.81-2.44,31.4,31.4,0,0,0-20-11.34V323.21a50.34,50.34,0,0,1,26.15,90.1Z"/><path d="M644.61,373.4A31.78,31.78,0,0,1,671.86,342V323.19A50.4,50.4,0,1,0,682.48,423.4l-13.82-19.22A31.76,31.76,0,0,1,644.61,373.4Z"/></svg></a>
 <p class="foot-tagline" data-t="footerTag">Premium AI automation systems engineered for ambitious teams. Designed in Kuwait, deployed globally.</p></div>
-<div class="foot-col"><h4 data-t="footerSolutions">Solutions</h4><ul><li><a href="#services" data-t="footerLeadGen">Lead Generation</a></li><li><a href="#services" data-t="footerWa">WhatsApp Automation</a></li><li><a href="#services" data-t="footerCrm">CRM Systems</a></li><li><a href="#services" data-t="footerWorkflows">Custom Workflows</a></li></ul></div>
+<div class="foot-col"><h4 data-t="footerSolutions">Solutions</h4><ul><li><a href="#services" data-t="footerLeadGen">Customer Acquisition </a></li><li><a href="#services" data-t="footerWa">WhatsApp Automation</a></li><li><a href="#services" data-t="footerCrm">CRM Systems</a></li><li><a href="#services" data-t="footerWorkflows">Custom Workflows</a></li></ul></div>
 <div class="foot-col"><h4 data-t="footerCompany">Company</h4><ul><li><a href="#why" data-t="footerWhy">Why Autonique</a></li><li><a href="#contact" data-t="footerContact">Contact</a></li><li><a href="https://wa.me/96599893300" target="_blank" rel="noopener" data-t="footerWhatsapp">WhatsApp</a></li></ul></div>
-<div class="foot-col"><h4 data-t="footerTouch">Get in Touch</h4><ul><li><a href="mailto:hello@autonique.ai">hello@autonique.ai</a></li><li><a href="https://wa.me/96599893300">+965 99893300</a></li></ul></div>
+<div class="foot-col"><h4 data-t="footerTouch">Get in Touch</h4><ul><li><a href="mailto:hello@autonique.ai" dir="ltr" style="direction:ltr;unicode-bidi:embed;display:inline-block;">hello@autonique.ai</a></li><li><a href="https://wa.me/96599893300" class="phone" dir="ltr" style="direction:ltr;unicode-bidi:embed;display:inline-block;">+965 99893300</a></li></ul></div>
 </div>
 <div class="foot-bottom"><p data-t="footerCopy">&copy; 2026 Autonique. All rights reserved.</p><p data-t="footerCraft">Crafted with AI Automation.</p></div>
 </div></footer>
@@ -698,7 +1381,7 @@ function submitContactForm(){
   var w=document.getElementById('cf-wa').value.trim();
   var alertMsg=pageLang==='AR'?'يرجى تعبئة الاسم واسم العيادة ورقم واتساب.':'Please fill in your name, clinic name, and WhatsApp number.';
   if(!n||!c||!w){alert(alertMsg);return;}
-  var msg='🏥 New Demo Request — AUTONIQUE\n\nName: '+n+'\nClinic: '+c+'\nType: '+(document.getElementById('cf-type').value||'Not specified')+'\nWhatsApp: '+w+'\nBest time: '+(document.getElementById('cf-time').value||'Flexible');
+  var msg='New Demo Request — AUTONIQUE\n\nName: '+n+'\nClinic: '+c+'\nType: '+(document.getElementById('cf-type').value||'Not specified')+'\nWhatsApp: '+w+'\nBest time: '+(document.getElementById('cf-time').value||'Flexible');
   window.open('https://wa.me/96599893300?text='+encodeURIComponent(msg),'_blank');
   document.getElementById('contact-form').style.display='none';
   document.getElementById('contact-success').classList.add('show');
@@ -950,7 +1633,7 @@ const pageContent = {
     eyebrow: 'AI Automation · Engineered in Kuwait',
     h1: 'Helping Kuwait & GCC Businesses <span class="accent">Grow</span> With AI Automation.',
     sub: 'AI systems for WhatsApp, lead generation, appointment booking, follow-ups, and workflow automation.',
-    urgency: '⚡ Your business is losing leads every day — slow replies, missed bookings, manual follow-up. We fix that in 48 hours.',
+    urgency: 'Your business is losing leads every day — slow replies, missed bookings, manual follow-up. We fix that in 48 hours.',
     heroCta1: 'Automate My Business', heroCta2: 'WhatsApp Us',
     // Trust strip
     t1n: '<30s', t1l: 'WhatsApp response to every lead',
@@ -1007,6 +1690,38 @@ const pageContent = {
     demoTitle: 'What <span class="accent">AUTONIQUE</span> looks like running live.',
     demoSub: 'Real AI. Real conversations. Real results. Here\'s what your customers and your team will see every day.',
     demoCta: 'Book a Live Demo — See It Running',
+    // Demo tabs
+    demoTab1: 'WhatsApp AI Chat', demoTab2: 'Lead Dashboard', demoTab3: 'Booking Flow', demoTab4: 'Automation',
+    // WhatsApp phone mockup
+    demoPhoneName: 'Autonique Clinic AI', demoPhoneStatus: '● Online · Replies instantly',
+    demoMsg1In: 'Hello, I\'d like to book an appointment for tomorrow at 5 PM',
+    demoMsg1Out: 'Hello! Thank you for reaching out to us.<br><br>I can book you for <strong>tomorrow at 5:00 PM</strong>. May I have your name please?',
+    demoMsg2In: 'Ahmed Al-Rashid',
+    demoMsg2Out: 'Perfect, Ahmed — your appointment is confirmed.<br><br><strong>Tomorrow · 5:00 PM</strong><br>Main clinic, Kuwait City<br><br>A reminder will be sent one hour before.',
+    demoRead: 'Read', demoDelivered: 'Delivered', demoTypePlaceholder: 'Type a message',
+    // Side stats
+    demoStat1Lbl: 'Response Time', demoStat1Val: '12 sec',
+    demoStat2Lbl: 'Intent Detected', demoStat2Val: 'BOOKING',
+    demoStat3Lbl: 'CRM Updated', demoStat3Val: 'Automatic',
+    // Dashboard panel
+    dbTitle: 'Lead Pipeline Dashboard', dbLive: '● Live',
+    dbStat1: 'Total Leads', dbStat2: 'Converted', dbStat3: 'Active', dbStat4: 'Missed → Recovered',
+    badgeBooked: 'BOOKED', badgeHot: 'HOT LEAD', badgeInquiry: 'INQUIRY', badgeBooked2: 'BOOKED', badgeReschedule: 'RESCHEDULE',
+    dbTime1: '2 min ago', dbTime2: '5 min ago', dbTime3: '11 min ago', dbTime4: '18 min ago', dbTime5: '32 min ago',
+    // Booking flow panel
+    flowTitle: 'AI Booking Flow — Runs 24/7',
+    flowStep1Title: 'Customer messages', flowStep1Sub: 'via WhatsApp or website',
+    flowStep2Title: 'AI detects intent', flowStep2Sub: 'Booking / Inquiry / Cancel',
+    flowStep3Title: 'Checks calendar', flowStep3Sub: 'Real-time availability',
+    flowStep4Title: 'Confirms booking', flowStep4Sub: 'Instant reply in any language',
+    flowStep5Title: 'CRM updated', flowStep5Sub: 'Team notified automatically',
+    flowNote: 'This entire flow takes under 15 seconds. Zero human intervention required.',
+    // Workflow panel
+    wfTitle: 'Automation Workflow Builder',
+    wfNode1Title: 'Trigger', wfNode1Sub: 'New WhatsApp message',
+    wfNode2Title: 'AI Analysis', wfNode2Sub: 'Detect intent & extract data',
+    wfNode3Title: 'Route', wfNode3Sub: 'Booking / Follow-up / Escalate',
+    wfNode4Title: 'Action', wfNode4Sub: 'Reply + Update CRM + Alert team',
     // CTA Banner
     ctaTitle: 'Ready to <span class="accent">automate</span> what matters?',
     ctaBody: "Tell us about your operation. We'll respond within hours with a tailored automation roadmap.",
@@ -1022,7 +1737,7 @@ const pageContent = {
     optTypeDefault: 'Select…', optDental: 'Dental', optDerm: 'Dermatology', optAesthetics: 'Aesthetics / Cosmetology',
     optMedical: 'Medical Center', optEye: 'Eye Clinic', optOrtho: 'Orthopedic', optHair: 'Hair Restoration', optPediatric: 'Pediatric', optOther: 'Other',
     optTimeDefault: 'Choose preferred time…', optMorning: 'Morning (9am – 12pm)', optAfternoon: 'Afternoon (12pm – 4pm)', optEvening: 'Evening (4pm – 8pm)',
-    formSubmit: 'Book My Free Demo →', formNote: '🔒 Your information is private. We\'ll reach you on WhatsApp within 2 hours.',
+    formSubmit: 'Book My Free Demo →', formNote: 'Your information is private. We\'ll reach you on WhatsApp within 2 hours.',
     formSuccessTitle: 'Request Received', formSuccessText: 'An AUTONIQUE team member will reach out on WhatsApp within 2 hours to confirm your slot.',
     // Footer
     contactLocation: 'Kuwait City, Kuwait',
@@ -1032,6 +1747,23 @@ const pageContent = {
     footerTouch: 'Get in Touch',
     footerCopy: '© 2026 Autonique. All rights reserved.',
     footerCraft: 'Crafted with intention.',
+    // Section 5 — The AUTONIQUE System
+    solEyebrow: 'The AUTONIQUE System',
+    solTitle: 'Your <span class="accent"><em>AI-Powered Growth Engine,</em></span><br>working while you sleep',
+    solSub: 'One intelligent platform — trained on your clinic — handles everything from first message to confirmed booking. In Arabic. In English. Every hour of every day.',
+    solNum1: '01', solNum2: '02', solNum3: '03', solNum4: '04', solNum5: '05', solNum6: '06',
+    sol1: 'Instant WhatsApp Replies',
+    sol1d: 'Your AI reception answers every message in under 60 seconds — with clinic-specific knowledge, correct pricing, and natural Arabic or English conversation. Day or night.',
+    sol2: 'Automated Booking',
+    sol2d: 'Patients choose their slot, confirm their appointment, and receive instant confirmation — all through WhatsApp. Your calendar fills automatically.',
+    sol3: 'Smart Reminders',
+    sol3d: 'Automated appointment reminders reduce no-shows by up to 60%. Customised messages sent 24 hours and 2 hours before each appointment.',
+    sol4: 'Patient Follow-ups',
+    sol4d: 'Automated post-visit messages request reviews, share aftercare instructions, and bring patients back. Build loyalty without lifting a finger.',
+    sol5: 'Live Dashboard',
+    sol5d: 'Monitor every conversation, booking, and patient interaction in real time. Full Arabic and English reporting so you always know what\'s happening.',
+    sol6: 'Enterprise-Grade Security',
+    sol6d: 'Official WhatsApp Business API. Patient data protected with encryption. Fully compliant with Kuwait healthcare data standards.',
     dir: 'ltr'
   },
   AR: {
@@ -1040,7 +1772,7 @@ const pageContent = {
     eyebrow: 'أتمتة الذكاء الاصطناعي · مصممة في الكويت',
     h1: 'نساعد شركات الكويت ودول الخليج على <span class="accent">النمو</span> بالذكاء الاصطناعي.',
     sub: 'أنظمة ذكاء اصطناعي للواتساب، توليد العملاء، حجز المواعيد، المتابعة، وأتمتة سير العمل.',
-    urgency: '⚡ عملك يخسر عملاء كل يوم — بطء الردود، حجوزات فائتة، متابعة يدوية. نحل ذلك في 48 ساعة.',
+    urgency: 'عملك يخسر عملاء كل يوم — بطء الردود، حجوزات فائتة، متابعة يدوية. نحل ذلك في 48 ساعة.',
     heroCta1: 'أتمتة عملي', heroCta2: 'تواصل عبر واتساب',
     t1n: '30 ث', t1l: 'رد واتساب لكل عميل محتمل',
     t2n: '70%', t2l: 'استعادة العملاء المفقودين',
@@ -1092,6 +1824,39 @@ const pageContent = {
     demoTitle: 'هذا ما يبدو عليه <span class="accent">أوتونيك</span> وهو يعمل فعلياً.',
     demoSub: 'ذكاء اصطناعي حقيقي. محادثات حقيقية. نتائج حقيقية. هذا ما سيراه عملاؤك وفريقك كل يوم.',
     demoCta: 'احجز عرضاً مباشراً — شاهده يعمل',
+    // Demo tabs
+    demoTab1: 'محادثة واتساب الذكية', demoTab2: 'لوحة العملاء', demoTab3: 'مسار الحجز', demoTab4: 'الأتمتة',
+    // WhatsApp phone mockup
+    demoPhoneName: 'ذكاء أوتونيك للعيادات', demoPhoneStatus: '● متصل · يرد فوراً',
+    demoMsg1In: 'مرحباً، أريد حجز موعد غداً الساعة 5 مساءً',
+    demoMsg1Out: 'أهلاً! شكراً على تواصلك معنا.<br><br>يمكنني حجزك <strong>غداً الساعة 5:00 مساءً</strong>. ما اسمك الكريم؟',
+    demoMsg2In: 'أحمد الراشد',
+    demoMsg2Out: 'تم تأكيد موعدك يا أحمد.<br><br><strong>غداً · الساعة 5:00 مساءً</strong><br>العيادة الرئيسية، مدينة الكويت<br><br>سيصلك تذكير قبل ساعة من الموعد.',
+    demoRead: 'مقروء', demoDelivered: 'تم التسليم', demoTypePlaceholder: 'اكتب رسالة',
+    // Side stats
+    demoStat1Lbl: 'وقت الرد', demoStat1Val: '12 ثانية',
+    demoStat2Lbl: 'النية المكتشفة', demoStat2Val: 'حجز موعد',
+    demoStat3Lbl: 'تحديث CRM', demoStat3Val: 'تلقائي',
+    // Dashboard panel
+    dbTitle: 'لوحة متابعة العملاء', dbLive: '● مباشر',
+    dbStat1: 'إجمالي العملاء', dbStat2: 'تم التحويل', dbStat3: 'نشط', dbStat4: 'فائت ← تم استرداده',
+    badgeBooked: 'محجوز', badgeHot: 'عميل ساخن', badgeInquiry: 'استفسار', badgeBooked2: 'محجوز', badgeReschedule: 'إعادة جدولة',
+    dbTime1: 'منذ دقيقتين', dbTime2: 'منذ 5 دقائق', dbTime3: 'منذ 11 دقيقة', dbTime4: 'منذ 18 دقيقة', dbTime5: 'منذ 32 دقيقة',
+    // Booking flow panel
+    flowTitle: 'مسار الحجز بالذكاء الاصطناعي — يعمل 24/7',
+    flowStep1Title: 'العميل يرسل رسالة', flowStep1Sub: 'عبر واتساب أو الموقع',
+    flowStep2Title: 'الذكاء الاصطناعي يكتشف النية', flowStep2Sub: 'حجز / استفسار / إلغاء',
+    flowStep3Title: 'يتحقق من التقويم', flowStep3Sub: 'التوفر في الوقت الفعلي',
+    flowStep4Title: 'يؤكد الحجز', flowStep4Sub: 'رد فوري بأي لغة',
+    flowStep5Title: 'تحديث CRM', flowStep5Sub: 'إشعار الفريق تلقائياً',
+    flowNote: 'يستغرق هذا المسار كاملاً أقل من 15 ثانية. لا تدخل بشري مطلوب.',
+    // Workflow panel
+    wfTitle: 'محرر سير عمل الأتمتة',
+    wfNode1Title: 'المشغّل', wfNode1Sub: 'رسالة واتساب جديدة',
+    wfNode2Title: 'تحليل ذكي', wfNode2Sub: 'اكتشاف النية واستخراج البيانات',
+    wfNode3Title: 'توجيه', wfNode3Sub: 'حجز / متابعة / تصعيد',
+    wfNode4Title: 'إجراء', wfNode4Sub: 'رد + تحديث CRM + تنبيه الفريق',
+    navDemo: 'جرّب العرض',
     ctaTitle: 'هل أنت مستعد <span class="accent">لأتمتة</span> ما يهم؟',
     ctaBody: 'أخبرنا عن عملك. سنرد في غضون ساعات بخارطة طريق أتمتة مخصصة.',
     ctaBtn1: 'احجز عرضاً مجانياً', ctaBtn2: 'تواصل معنا',
@@ -1105,7 +1870,7 @@ const pageContent = {
     optTypeDefault: 'اختر…', optDental: 'أسنان', optDerm: 'جلدية', optAesthetics: 'تجميل',
     optMedical: 'مركز طبي', optEye: 'عيون', optOrtho: 'عظام', optHair: 'زراعة شعر', optPediatric: 'أطفال', optOther: 'أخرى',
     optTimeDefault: 'اختر الوقت المناسب…', optMorning: 'صباحاً (9 – 12)', optAfternoon: 'ظهراً (12 – 4)', optEvening: 'مساءً (4 – 8)',
-    formSubmit: 'احجز عرضي المجاني ←', formNote: '🔒 معلوماتك خاصة. سنتواصل عبر واتساب خلال ساعتين.',
+    formSubmit: 'احجز عرضي المجاني ←', formNote: 'معلوماتك خاصة. سنتواصل عبر واتساب خلال ساعتين.',
     formSuccessTitle: 'تم استلام طلبك', formSuccessText: 'سيتواصل فريق أوتونيك عبر واتساب خلال ساعتين لتأكيد موعدك.',
     contactLocation: 'مدينة الكويت، الكويت',
     footerTag: 'أنظمة أتمتة ذكاء اصطناعي متميزة، مصممة للفرق الطموحة. صُنعت في الكويت، ونُشرت عالمياً.',
@@ -1114,6 +1879,23 @@ const pageContent = {
     footerTouch: 'تواصل معنا',
     footerCopy: '© 2026 أوتونيك. جميع الحقوق محفوظة.',
     footerCraft: 'صُنع بعناية واحترافية.',
+    // Section 5 — The AUTONIQUE System
+    solEyebrow: 'نظام أوتونيك',
+    solTitle: 'محرك نموك <span class="accent"><em>بالذكاء الاصطناعي،</em></span><br>يعمل حتى أثناء نومك',
+    solSub: 'منصة ذكية واحدة — مدرّبة على عيادتك — تتولى كل شيء من أول رسالة حتى تأكيد الحجز. بالعربية. بالإنجليزية. على مدار الساعة.',
+    solNum1: '٠١', solNum2: '٠٢', solNum3: '٠٣', solNum4: '٠٤', solNum5: '٠٥', solNum6: '٠٦',
+    sol1: 'ردود واتساب فورية',
+    sol1d: 'يرد الذكاء الاصطناعي على كل رسالة خلال 60 ثانية — بمعرفة دقيقة بعيادتك وأسعارك، ومحادثة طبيعية بالعربية أو الإنجليزية. في أي وقت من اليوم أو الليل.',
+    sol2: 'حجز تلقائي',
+    sol2d: 'يختار المرضى موعدهم ويؤكدونه ويتلقون تأكيداً فورياً — كل ذلك عبر واتساب. يمتلئ تقويمك تلقائياً.',
+    sol3: 'تذكيرات ذكية',
+    sol3d: 'تُقلّل تذكيرات المواعيد التلقائية نسبة الغياب بما يصل إلى 60%. رسائل مخصصة تُرسل قبل 24 ساعة وقبل ساعتين من كل موعد.',
+    sol4: 'متابعة المرضى',
+    sol4d: 'رسائل تلقائية بعد الزيارة تطلب التقييمات وتشارك تعليمات ما بعد العلاج وتعيد المرضى مجدداً. ابنِ الولاء دون أن ترفع إصبعاً.',
+    sol5: 'لوحة تحكم مباشرة',
+    sol5d: 'راقب كل محادثة وحجز وتفاعل مع المريض في الوقت الفعلي. تقارير كاملة بالعربية والإنجليزية حتى تعرف دائماً ما يحدث.',
+    sol6: 'أمان على مستوى المؤسسات',
+    sol6d: 'واجهة برمجة واتساب للأعمال الرسمية. بيانات المرضى محمية بالتشفير. متوافق تماماً مع معايير بيانات الرعاية الصحية في الكويت.',
     dir: 'rtl'
   }
 };
@@ -1135,6 +1917,23 @@ function applyPageLanguage(lang) {
   const c = pageContent[lang];
   document.documentElement.dir = c.dir;
   document.documentElement.lang = lang === 'AR' ? 'ar' : 'en';
+  // Apply RTL class to body for any JS-driven tweaks
+  document.body.classList.toggle('rtl-active', lang === 'AR');
+  // Fix mobile menu direction
+  const mobileMenu = document.getElementById('mobileMenu');
+  if (mobileMenu) mobileMenu.dir = c.dir;
+  // Fix all inputs/selects for proper RTL text entry
+  document.querySelectorAll('input, select, textarea').forEach(function(el) {
+    if (lang === 'AR') {
+      el.setAttribute('dir', 'rtl');
+    } else {
+      el.setAttribute('dir', 'ltr');
+    }
+  });
+  // Phone/email inputs stay LTR always
+  document.querySelectorAll('input[type="tel"], input[type="email"]').forEach(function(el) {
+    el.setAttribute('dir', 'ltr');
+  });
 
   // Nav
   safeText('[data-t="navServices"]', c.navServices);
@@ -1205,6 +2004,49 @@ function applyPageLanguage(lang) {
   safeHTML('[data-t="demoTitle"]', c.demoTitle);
   safeText('[data-t="demoSub"]', c.demoSub);
   safeText('[data-t="demoCta"]', c.demoCta);
+  // Demo tabs
+  safeText('[data-t="demoTab1"]', c.demoTab1);
+  safeText('[data-t="demoTab2"]', c.demoTab2);
+  safeText('[data-t="demoTab3"]', c.demoTab3);
+  safeText('[data-t="demoTab4"]', c.demoTab4);
+  // WhatsApp mockup
+  safeText('[data-t="demoPhoneName"]', c.demoPhoneName);
+  safeText('[data-t="demoPhoneStatus"]', c.demoPhoneStatus);
+  safeText('[data-t="demoMsg1In"]', c.demoMsg1In);
+  safeHTMLAttr('demoMsg1Out', c.demoMsg1Out);
+  safeText('[data-t="demoMsg2In"]', c.demoMsg2In);
+  safeHTMLAttr('demoMsg2Out', c.demoMsg2Out);
+  safeText('[data-t="demoRead"]', c.demoRead);
+  safeText('[data-t="demoDelivered"]', c.demoDelivered);
+  safeText('[data-t="demoTypePlaceholder"]', c.demoTypePlaceholder);
+  // Side stats
+  safeText('[data-t="demoStat1Lbl"]', c.demoStat1Lbl); safeText('[data-t="demoStat1Val"]', c.demoStat1Val);
+  safeText('[data-t="demoStat2Lbl"]', c.demoStat2Lbl); safeText('[data-t="demoStat2Val"]', c.demoStat2Val);
+  safeText('[data-t="demoStat3Lbl"]', c.demoStat3Lbl); safeText('[data-t="demoStat3Val"]', c.demoStat3Val);
+  // Dashboard
+  safeText('[data-t="dbTitle"]', c.dbTitle); safeText('[data-t="dbLive"]', c.dbLive);
+  safeText('[data-t="dbStat1"]', c.dbStat1); safeText('[data-t="dbStat2"]', c.dbStat2);
+  safeText('[data-t="dbStat3"]', c.dbStat3); safeText('[data-t="dbStat4"]', c.dbStat4);
+  safeText('[data-t="badgeBooked"]', c.badgeBooked); safeText('[data-t="badgeHot"]', c.badgeHot);
+  safeText('[data-t="badgeInquiry"]', c.badgeInquiry); safeText('[data-t="badgeBooked2"]', c.badgeBooked2);
+  safeText('[data-t="badgeReschedule"]', c.badgeReschedule);
+  safeText('[data-t="dbTime1"]', c.dbTime1); safeText('[data-t="dbTime2"]', c.dbTime2);
+  safeText('[data-t="dbTime3"]', c.dbTime3); safeText('[data-t="dbTime4"]', c.dbTime4);
+  safeText('[data-t="dbTime5"]', c.dbTime5);
+  // Booking flow
+  safeText('[data-t="flowTitle"]', c.flowTitle);
+  safeText('[data-t="flowStep1Title"]', c.flowStep1Title); safeText('[data-t="flowStep1Sub"]', c.flowStep1Sub);
+  safeText('[data-t="flowStep2Title"]', c.flowStep2Title); safeText('[data-t="flowStep2Sub"]', c.flowStep2Sub);
+  safeText('[data-t="flowStep3Title"]', c.flowStep3Title); safeText('[data-t="flowStep3Sub"]', c.flowStep3Sub);
+  safeText('[data-t="flowStep4Title"]', c.flowStep4Title); safeText('[data-t="flowStep4Sub"]', c.flowStep4Sub);
+  safeText('[data-t="flowStep5Title"]', c.flowStep5Title); safeText('[data-t="flowStep5Sub"]', c.flowStep5Sub);
+  safeText('[data-t="flowNote"]', c.flowNote);
+  // Workflow
+  safeText('[data-t="wfTitle"]', c.wfTitle);
+  safeText('[data-t="wfNode1Title"]', c.wfNode1Title); safeText('[data-t="wfNode1Sub"]', c.wfNode1Sub);
+  safeText('[data-t="wfNode2Title"]', c.wfNode2Title); safeText('[data-t="wfNode2Sub"]', c.wfNode2Sub);
+  safeText('[data-t="wfNode3Title"]', c.wfNode3Title); safeText('[data-t="wfNode3Sub"]', c.wfNode3Sub);
+  safeText('[data-t="wfNode4Title"]', c.wfNode4Title); safeText('[data-t="wfNode4Sub"]', c.wfNode4Sub);
 
   // CTA Banner
   safeHTML('[data-t="ctaTitle"]', c.ctaTitle);
@@ -1251,6 +2093,20 @@ function applyPageLanguage(lang) {
   safeText('[data-t="footerCopy"]', c.footerCopy);
   safeText('[data-t="footerCraft"]', c.footerCraft);
 
+  // Section 5 — The AUTONIQUE System
+  safeText('[data-t="solEyebrow"]', c.solEyebrow);
+  safeHTML('[data-t="solTitle"]', c.solTitle);
+  safeText('[data-t="solSub"]', c.solSub);
+  safeText('[data-t="solNum1"]', c.solNum1); safeText('[data-t="solNum2"]', c.solNum2);
+  safeText('[data-t="solNum3"]', c.solNum3); safeText('[data-t="solNum4"]', c.solNum4);
+  safeText('[data-t="solNum5"]', c.solNum5); safeText('[data-t="solNum6"]', c.solNum6);
+  safeText('[data-t="sol1"]', c.sol1); safeText('[data-t="sol1d"]', c.sol1d);
+  safeText('[data-t="sol2"]', c.sol2); safeText('[data-t="sol2d"]', c.sol2d);
+  safeText('[data-t="sol3"]', c.sol3); safeText('[data-t="sol3d"]', c.sol3d);
+  safeText('[data-t="sol4"]', c.sol4); safeText('[data-t="sol4d"]', c.sol4d);
+  safeText('[data-t="sol5"]', c.sol5); safeText('[data-t="sol5d"]', c.sol5d);
+  safeText('[data-t="sol6"]', c.sol6); safeText('[data-t="sol6d"]', c.sol6d);
+
   // Sync chat widget language
   if (lang === 'AR' && currentLang !== 'AR') setLanguage('AR');
   if (lang === 'EN' && currentLang !== 'EN') setLanguage('EN');
@@ -1262,6 +2118,11 @@ function safeText(selector, text) {
 }
 function safeHTML(selector, html) {
   const el = document.querySelector(selector);
+  if (el) el.innerHTML = html;
+}
+// Handle data-t-html="key" for elements needing innerHTML translation
+function safeHTMLAttr(key, html) {
+  const el = document.querySelector('[data-t-html="' + key + '"]');
   if (el) el.innerHTML = html;
 }
 
